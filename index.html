@@ -19,18 +19,18 @@
       --success-dark: #059669;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --card-border: rgba(255, 255, 255, 0.1);
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #090d16;
+      background: #f1f5f9;
       color: var(--text);
       min-height: 100vh;
       display: flex;
@@ -39,14 +39,15 @@
 
     /* HEADER */
     .app-header {
-      background: linear-gradient(135deg, #1e3a8a, #1d4ed8 60%, #2563eb);
+      background: linear-gradient(135deg, #1d4ed8, #2563eb 60%, #3b82f6);
       padding: 1.1rem 1rem 1rem 1rem;
       text-align: center;
-      border-bottom: 1px solid rgba(255,255,255,0.15);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 4px 16px rgba(37,99,235,0.15);
       position: sticky;
       top: 0;
       z-index: 50;
+      color: #ffffff;
     }
 
     .org-badge {
@@ -54,7 +55,7 @@
       align-items: center;
       gap: 6px;
       padding: 3px 10px;
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.2);
       border-radius: 20px;
       font-size: 0.68rem;
       font-weight: 700;
@@ -62,6 +63,7 @@
       text-transform: uppercase;
       margin-bottom: 6px;
       backdrop-filter: blur(4px);
+      color: #ffffff;
     }
 
     .app-title {
@@ -70,23 +72,25 @@
       letter-spacing: -0.01em;
       line-height: 1.3;
       text-transform: uppercase;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
     .app-subtitle {
       font-size: 0.76rem;
-      color: rgba(255,255,255,0.85);
+      color: rgba(255,255,255,0.92);
       margin-top: 3px;
     }
 
     /* STEP INDICATOR */
     .step-bar {
       display: flex;
-      background: #0f172a;
-      padding: 0.6rem 0.75rem;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      gap: 4px;
+      background: #ffffff;
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      gap: 6px;
       overflow-x: auto;
+      box-shadow: 0 1px 4px rgba(15,23,42,0.04);
     }
 
     .step-item {
@@ -95,25 +99,25 @@
       padding: 6px 4px;
       text-align: center;
       border-radius: 8px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-      font-size: 0.68rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font-size: 0.7rem;
       font-weight: 600;
       color: var(--text-muted);
       transition: all 0.2s;
     }
 
     .step-item.active {
-      background: rgba(37,99,235,0.25);
+      background: rgba(37,99,235,0.1);
       border-color: #3b82f6;
-      color: #93c5fd;
+      color: #1d4ed8;
       font-weight: 700;
     }
 
     .step-item.completed {
-      background: rgba(16,185,129,0.15);
+      background: rgba(16,185,129,0.1);
       border-color: #10b981;
-      color: #6ee7b7;
+      color: #059669;
     }
 
     /* MAIN CONTAINER */
@@ -138,9 +142,9 @@
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 1rem;
+      padding: 1.15rem;
       margin-bottom: 1rem;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 20px rgba(15,23,42,0.06);
     }
 
     /* CAMERA VIEWPORT */
@@ -327,28 +331,31 @@
     }
 
     .hud-hint-pill {
+      position: relative;
+      z-index: 2;
       margin-top: 14px;
       font-size: 0.75rem;
       font-weight: 600;
-      color: #f1f5f9;
-      background: rgba(15,23,42,0.92);
+      color: #f8fafc;
+      background: rgba(15, 23, 42, 0.9);
       padding: 8px 16px;
       border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       text-align: center;
       max-width: 90%;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
       line-height: 1.45;
     }
 
     /* PARSED CCCD BADGE CARD */
     .parsed-badge {
       display: none;
-      background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(16,185,129,0.12));
+      background: linear-gradient(135deg, #f0fdf4, #eff6ff);
       border: 1.5px solid #10b981;
       border-radius: 12px;
-      padding: 0.95rem;
-      margin-top: 0.75rem;
+      padding: 1rem;
+      margin-top: 0.85rem;
+      box-shadow: 0 4px 16px rgba(16,185,129,0.12);
       animation: slideDown 0.25s ease;
     }
 
@@ -367,11 +374,11 @@
     }
 
     .badge-tag {
-      background: rgba(16,185,129,0.2);
-      color: #10b981;
+      background: rgba(16,185,129,0.15);
+      color: #059669;
       font-family: monospace;
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-size: 0.82rem;
+      font-weight: 800;
       padding: 2px 8px;
       border-radius: 4px;
     }
@@ -379,13 +386,13 @@
     .data-row {
       display: flex;
       justify-content: space-between;
-      font-size: 0.82rem;
-      margin-bottom: 0.35rem;
+      font-size: 0.84rem;
+      margin-bottom: 0.38rem;
     }
 
-    .data-label { color: var(--text-muted); }
-    .data-value { font-weight: 700; color: #fff; text-align: right; }
-    .data-name { color: #60a5fa; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; }
+    .data-label { color: #64748b; font-weight: 500; }
+    .data-value { font-weight: 700; color: #0f172a; text-align: right; }
+    .data-name { color: #1d4ed8; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; }
 
     /* FORMS & BUTTONS */
     .form-group {
@@ -396,7 +403,7 @@
       display: block;
       font-size: 0.78rem;
       font-weight: 700;
-      color: var(--text-muted);
+      color: #334155;
       margin-bottom: 4px;
       text-transform: uppercase;
       letter-spacing: 0.03em;
@@ -404,21 +411,22 @@
 
     .form-control {
       width: 100%;
-      height: 42px;
-      background: #0f172a;
-      border: 1.5px solid rgba(255,255,255,0.12);
+      height: 44px;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
       border-radius: 9px;
       padding: 0 12px;
-      font-size: 0.9rem;
-      color: #fff;
+      font-size: 0.92rem;
+      color: #0f172a;
+      font-weight: 600;
       font-family: inherit;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
     }
 
     .form-control:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.25);
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
     }
 
     .btn {
@@ -440,7 +448,7 @@
     .btn-primary {
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
       color: #fff;
-      box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+      box-shadow: 0 4px 14px rgba(37,99,235,0.25);
     }
 
     .btn-primary:active { transform: scale(0.98); }
@@ -448,13 +456,18 @@
     .btn-success {
       background: linear-gradient(135deg, #10b981, #059669);
       color: #fff;
-      box-shadow: 0 4px 14px rgba(16,185,129,0.35);
+      box-shadow: 0 4px 14px rgba(16,185,129,0.25);
     }
 
     .btn-secondary {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: var(--text);
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      font-weight: 700;
+    }
+
+    .btn-secondary:active {
+      background: #e2e8f0;
     }
 
     /* PHOTO UPLOAD BOX */
@@ -466,7 +479,7 @@
     }
 
     .photo-box {
-      border: 2px dashed rgba(255,255,255,0.18);
+      border: 2px dashed #cbd5e1;
       border-radius: 12px;
       height: 140px;
       display: flex;
@@ -474,11 +487,17 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      background: #0f172a;
+      background: #f8fafc;
       position: relative;
       overflow: hidden;
       text-align: center;
       padding: 8px;
+      color: #1e293b;
+      transition: all 0.2s;
+    }
+
+    .photo-box:active {
+      background: #f1f5f9;
     }
 
     .photo-box.has-image {
@@ -524,18 +543,20 @@
     }
 
     .toast-msg {
-      background: #1e293b;
+      background: #0f172a;
       border: 1px solid rgba(255,255,255,0.15);
       color: #fff;
       padding: 10px 14px;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 0.82rem;
       font-weight: 600;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 10px 30px rgba(15,23,42,0.35);
       display: flex;
       align-items: center;
       gap: 8px;
       animation: toastIn 0.25s ease;
+      pointer-events: auto;
+      cursor: pointer;
     }
 
     @keyframes toastIn {
@@ -619,8 +640,8 @@
             </div>
 
             <div class="hud-hint-pill">
-              🎯 <strong>Hướng góc phải CCCD (nơi có mã QR)</strong> vào giữa ô vuông<br>
-              <span style="font-size: 0.68rem; color: #93c5fd;">📏 Giữ cách 15 - 25 cm để camera tự động lấy nét rõ</span>
+              🎯 <strong style="color: #38bdf8;">Hướng góc phải CCCD (nơi có mã QR)</strong> vào giữa ô vuông<br>
+              <span style="font-size: 0.68rem; color: #cbd5e1; font-weight: 600;">📏 Giữ cách 15 - 25 cm để camera tự động lấy nét rõ</span>
             </div>
           </div>
         </div>
@@ -793,7 +814,7 @@
           Kiểm tra lại toàn bộ thông tin trước khi ghi nhận vào hệ thống
         </p>
 
-        <div style="background: #0f172a; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.08);">
+        <div style="background: #f8fafc; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #e2e8f0;">
           <div class="data-row">
             <span class="data-label">Họ và Tên:</span>
             <span class="data-name" id="revName">-</span>
@@ -808,7 +829,7 @@
           </div>
           <div class="data-row">
             <span class="data-label">Nơi tiếp nhận:</span>
-            <span class="data-value" style="color: #6ee7b7; font-size: 0.92rem;" id="revRoom">-</span>
+            <span class="data-value" style="color: #059669; font-weight: 800; font-size: 0.95rem;" id="revRoom">-</span>
           </div>
           <div class="data-row">
             <span class="data-label">Tổ đội trưởng:</span>
@@ -842,17 +863,17 @@
         <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(16,185,129,0.15); border: 2px solid #10b981; display: inline-flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #10b981; margin-bottom: 0.75rem;">
           ✓
         </div>
-        <h2 style="font-size: 1.25rem; font-weight: 800; color: #10b981; margin-bottom: 0.35rem;">TIẾP NHẬN THÀNH CÔNG!</h2>
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #059669; margin-bottom: 0.35rem;">TIẾP NHẬN THÀNH CÔNG!</h2>
         <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.2rem;">
           Công nhân đã được ghi nhận vào danh sách lưu trú KTX Nam Tràng Cát
         </p>
 
-        <div style="background: rgba(37,99,235,0.12); border: 1.5px solid #3b82f6; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
-          <div style="font-size: 0.75rem; color: #93c5fd; font-weight: 700; text-transform: uppercase;">PHÒNG ĐƯỢC BỐ TRÍ</div>
-          <div style="font-size: 1.35rem; font-weight: 800; color: #fff; margin: 4px 0;" id="successRoomBadge">
+        <div style="background: rgba(37,99,235,0.06); border: 1.5px solid #3b82f6; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+          <div style="font-size: 0.75rem; color: #2563eb; font-weight: 700; text-transform: uppercase;">PHÒNG ĐƯỢC BỐ TRÍ</div>
+          <div style="font-size: 1.35rem; font-weight: 800; color: #1e3a8a; margin: 4px 0;" id="successRoomBadge">
             DÃY 1 • PHÒNG 101
           </div>
-          <div style="font-size: 0.82rem; color: #cbd5e1;" id="successWorkerName">
+          <div style="font-size: 0.82rem; color: #475569; font-weight: 600;" id="successWorkerName">
             NGUYỄN VĂN A
           </div>
         </div>
