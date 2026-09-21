@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cổng Khai Báo Lưu Trú KTX Nam Tràng Cát - Quét QR CCCD Trực Tiếp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Thư viện jsQR & Html5Qrcode -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #60a5fa;
+      --success: #10b981;
+      --success-dark: #059669;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #090d16;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    .app-header {
+      background: linear-gradient(135deg, #1e3a8a, #1d4ed8 60%, #2563eb);
+      padding: 1.1rem 1rem 1rem 1rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .org-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      backdrop-filter: blur(4px);
+    }
+
+    .app-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      text-transform: uppercase;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+
+    .app-subtitle {
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.85);
+      margin-top: 3px;
+    }
+
+    /* STEP INDICATOR */
+    .step-bar {
+      display: flex;
+      background: #0f172a;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      gap: 4px;
+      overflow-x: auto;
+    }
+
+    .step-item {
+      flex: 1;
+      min-width: 75px;
+      padding: 6px 4px;
+      text-align: center;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .step-item.active {
+      background: rgba(37,99,235,0.25);
+      border-color: #3b82f6;
+      color: #93c5fd;
+      font-weight: 700;
+    }
+
+    .step-item.completed {
+      background: rgba(16,185,129,0.15);
+      border-color: #10b981;
+      color: #6ee7b7;
+    }
+
+    /* MAIN CONTAINER */
+    .main-content {
+      flex: 1;
+      padding: 1rem;
+      max-width: 540px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* STEP CARD */
+    .step-container { display: none; }
+    .step-container.active { display: block; animation: fadeIn 0.25s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    /* CAMERA VIEWPORT */
+    .camera-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      max-height: 52vh;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #000;
+      border: 2px solid #3b82f6;
+      box-shadow: 0 0 24px rgba(37,99,235,0.3);
+    }
+
+    #videoPreview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* CAMERA CONTROLS BAR */
+    .cam-ctrl-bar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .cam-status-pill {
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .cam-btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .cam-action-btn {
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .cam-action-btn.active {
+      background: #2563eb;
+      border-color: #60a5fa;
+    }
+
+    /* CCCD HUD RETICLE */
+    .hud-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .hud-card-frame {
+      position: relative;
+      width: 86%;
+      max-width: 320px;
+      height: 202px;
+      border: 1.5px dashed rgba(255,255,255,0.45);
+      border-radius: 12px;
+      box-shadow: 0 0 0 9999px rgba(11, 15, 25, 0.58);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px;
+    }
+
+    .hud-corner {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-color: #38bdf8;
+      border-style: solid;
+    }
+    .hud-corner.tl { top: -2px; left: -2px; border-width: 3.5px 0 0 3.5px; border-top-left-radius: 10px; }
+    .hud-corner.tr { top: -2px; right: -2px; border-width: 3.5px 3.5px 0 0; border-top-right-radius: 10px; }
+    .hud-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 3.5px 3.5px; border-bottom-left-radius: 10px; }
+    .hud-corner.br { bottom: -2px; right: -2px; border-width: 0 3.5px 3.5px 0; border-bottom-right-radius: 10px; }
+
+    .hud-qr-target {
+      align-self: flex-end;
+      width: 68px;
+      height: 68px;
+      border: 2px solid #10b981;
+      border-radius: 8px;
+      background: rgba(16,185,129,0.12);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hud-laser {
+      position: absolute;
+      left: 0; right: 0; height: 2px;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981, 0 0 16px #10b981;
+      animation: scanLaser 1.8s infinite ease-in-out alternate;
+    }
+
+    @keyframes scanLaser {
+      0% { top: 4px; }
+      100% { top: 60px; }
+    }
+
+    .hud-qr-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #a7f3d0;
+      text-shadow: 0 1px 3px #000;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-hint-pill {
+      margin-top: 10px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      background: rgba(15,23,42,0.92);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      text-align: center;
+      max-width: 90%;
+    }
+
+    /* PARSED CCCD BADGE CARD */
+    .parsed-badge {
+      display: none;
+      background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(16,185,129,0.12));
+      border: 1.5px solid #10b981;
+      border-radius: 12px;
+      padding: 0.95rem;
+      margin-top: 0.75rem;
+      animation: slideDown 0.25s ease;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .parsed-badge-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed rgba(16,185,129,0.3);
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .badge-tag {
+      background: rgba(16,185,129,0.2);
+      color: #10b981;
+      font-family: monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .data-label { color: var(--text-muted); }
+    .data-value { font-weight: 700; color: #fff; text-align: right; }
+    .data-name { color: #60a5fa; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; }
+
+    /* FORMS & BUTTONS */
+    .form-group {
+      margin-bottom: 0.85rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .form-control {
+      width: 100%;
+      height: 42px;
+      background: #0f172a;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 9px;
+      padding: 0 12px;
+      font-size: 0.9rem;
+      color: #fff;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.25);
+    }
+
+    .btn {
+      width: 100%;
+      height: 46px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+    }
+
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(16,185,129,0.35);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text);
+    }
+
+    /* PHOTO UPLOAD BOX */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .photo-box {
+      border: 2px dashed rgba(255,255,255,0.18);
+      border-radius: 12px;
+      height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: #0f172a;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .photo-box.has-image {
+      border-style: solid;
+      border-color: #10b981;
+    }
+
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      inset: 0;
+    }
+
+    .photo-badge {
+      position: absolute;
+      bottom: 6px;
+      left: 6px;
+      right: 6px;
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(4px);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #6ee7b7;
+    }
+
+    /* TOAST */
+    #toastContainer {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 90%;
+      max-width: 400px;
+      pointer-events: none;
+    }
+
+    .toast-msg {
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: toastIn 0.25s ease;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="org-badge">
+      <span>🏢</span> BAN CHỈ HUY KTX NAM TRÀNG CÁT
+    </div>
+    <h1 class="app-title">Cổng Tiếp Nhận & Lưu Trú KTX</h1>
+    <p class="app-subtitle">Quét mã QR thẻ CCCD để tự động điền thông tin và nhận phòng</p>
+  </header>
+
+  <!-- STEP PROGRESS BAR -->
+  <div class="step-bar">
+    <div class="step-item active" id="stepPill1">1. Quét CCCD</div>
+    <div class="step-item" id="stepPill2">2. Chụp 2 Mặt</div>
+    <div class="step-item" id="stepPill3">3. Chọn Phòng</div>
+    <div class="step-item" id="stepPill4">4. Hoàn Tất</div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="main-content">
+
+    <!-- ========================================================================= -->
+    <!-- BƯỚC 1: QUÉT MÃ QR CCCD BẰNG CAMERA TRỰC TIẾP -->
+    <!-- ========================================================================= -->
+    <section class="step-container active" id="step1Container">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <div>
+            <h2 style="font-size: 1rem; font-weight: 800;">Bước 1: Quét Mã QR Trên CCCD</h2>
+            <p style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+              Đưa camera vào mã QR góc phải CCCD để tự nhận diện
+            </p>
+          </div>
+          <button type="button" class="btn btn-secondary" onclick="toggleCamera()" style="width: auto; height: 32px; padding: 0 10px; font-size: 0.72rem;" id="btnMasterCamToggle">
+            Tắt Cam
+          </button>
+        </div>
+
+        <!-- CAMERA LIVE VIEWPORT -->
+        <div class="camera-wrapper" id="cameraBox">
+          <video id="videoPreview" playsinline autoplay muted></video>
+
+          <!-- FLOATING CONTROLS -->
+          <div class="cam-ctrl-bar">
+            <div class="cam-status-pill">
+              <span class="status-dot" id="camStatusDot"></span>
+              <span id="camStatusText">Camera HD đang quét...</span>
+            </div>
+            <div class="cam-btn-group">
+              <button type="button" class="cam-action-btn" id="btnZoom" onclick="toggleZoom()" title="Phóng to 2x">
+                🔍 <span>2x</span>
+              </button>
+              <button type="button" class="cam-action-btn" id="btnTorch" onclick="toggleTorch()" title="Bật đèn Flash">
+                ⚡ <span>Flash</span>
+              </button>
+              <button type="button" class="cam-action-btn" onclick="switchCamera()" title="Đổi camera">
+                🔄
+              </button>
+            </div>
+          </div>
+
+          <!-- HUD RETICLE OVERLAY -->
+          <div class="hud-overlay" id="hudOverlay">
+            <div class="hud-card-frame">
+              <div class="hud-corner tl"></div>
+              <div class="hud-corner tr"></div>
+              <div class="hud-corner bl"></div>
+              <div class="hud-corner br"></div>
+
+              <div class="hud-qr-target">
+                <div class="hud-laser"></div>
+                <span class="hud-qr-label">MÃ QR</span>
+              </div>
+
+              <div style="text-align: center; color: rgba(255,255,255,0.7); font-size: 0.68rem; font-weight: 700;">
+                CĂN CƯỚC CÔNG DÂN
+              </div>
+            </div>
+
+            <div class="hud-hint-pill">
+              ✨ Đưa camera vào mã QR hoặc đặt thẻ vào khung viền để tự bắt tức thì
+            </div>
+          </div>
+        </div>
+
+        <!-- THẺ HIỂN THỊ THÔNG TIN ĐÃ BÓC TÁCH -->
+        <div class="parsed-badge" id="parsedCard">
+          <div class="parsed-badge-header">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="background: #10b981; color: #fff; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.72rem;">✓</span>
+              <span style="font-size: 0.78rem; font-weight: 800; color: #059669; text-transform: uppercase;">ĐÃ XÁC THỰC MÃ QR HỢP LỆ</span>
+            </div>
+            <span class="badge-tag" id="badgeCccd"></span>
+          </div>
+
+          <div class="data-row">
+            <span class="data-label">Họ và Tên:</span>
+            <span class="data-name" id="badgeName"></span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Số CCCD:</span>
+            <span class="data-value" id="badgeCccdNum"></span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Ngày sinh:</span>
+            <span class="data-value" id="badgeDob"></span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Giới tính:</span>
+            <span class="data-value" id="badgeGender"></span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Quê quán:</span>
+            <span class="data-value" id="badgeAddress"></span>
+          </div>
+          <div class="data-row" id="rowIssueDate" style="display: none;">
+            <span class="data-label">Ngày cấp:</span>
+            <span class="data-value" id="badgeIssueDate"></span>
+          </div>
+
+          <div style="margin-top: 0.75rem;">
+            <button type="button" class="btn btn-primary" onclick="goToStep(2)">
+              Tiếp Tục Sang Bước 2 (Chụp Ảnh Thẻ) →
+            </button>
+          </div>
+        </div>
+
+        <!-- TÙY CHỌN DỰ PHÒNG -->
+        <div style="display: flex; gap: 8px; margin-top: 0.85rem;">
+          <label class="btn btn-secondary" style="flex: 1; font-size: 0.76rem; height: 38px;">
+            <span>📁 Tải ảnh từ máy</span>
+            <input type="file" accept="image/*" style="display: none;" onchange="handleFileSelected(this)">
+          </label>
+          <button type="button" class="btn btn-secondary" style="flex: 1; font-size: 0.76rem; height: 38px;" onclick="promptManualCccd()">
+            ✍️ Nhập số CCCD
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- BƯỚC 2: CHỤP 2 MẶT THẺ CCCD -->
+    <!-- ========================================================================= -->
+    <section class="step-container" id="step2Container">
+      <div class="card">
+        <h2 style="font-size: 1rem; font-weight: 800; margin-bottom: 0.25rem;">Bước 2: Chụp Ảnh 2 Mặt Thẻ CCCD</h2>
+        <p style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Chụp ảnh rõ nét mặt trước và mặt sau thẻ để lưu trữ hồ sơ
+        </p>
+
+        <div class="photo-grid">
+          <!-- MẶT TRƯỚC -->
+          <label class="photo-box" id="boxFrontPhoto">
+            <div id="phFrontPlaceholder">
+              <div style="font-size: 1.6rem; margin-bottom: 4px;">🪪</div>
+              <div style="font-size: 0.78rem; font-weight: 700;">Mặt Trước CCCD</div>
+              <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">Bấm để chụp</div>
+            </div>
+            <img id="imgFrontPreview" style="display: none;">
+            <div class="photo-badge" id="badgeFrontOk" style="display: none;">✓ Đã chụp mặt trước</div>
+            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleCccdSidePhoto(this, 'front')">
+          </label>
+
+          <!-- MẶT SAU -->
+          <label class="photo-box" id="boxBackPhoto">
+            <div id="phBackPlaceholder">
+              <div style="font-size: 1.6rem; margin-bottom: 4px;">💳</div>
+              <div style="font-size: 0.78rem; font-weight: 700;">Mặt Sau CCCD</div>
+              <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">Bấm để chụp</div>
+            </div>
+            <img id="imgBackPreview" style="display: none;">
+            <div class="photo-badge" id="badgeBackOk" style="display: none;">✓ Đã chụp mặt sau</div>
+            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleCccdSidePhoto(this, 'back')">
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn btn-secondary" onclick="goToStep(1)" style="flex: 1;">
+            ← Quay Lại
+          </button>
+          <button type="button" class="btn btn-primary" onclick="goToStep(3)" style="flex: 2;">
+            Tiếp Tục Sang Bước 3 →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- BƯỚC 3: THÔNG TIN NƠI Ở & TỔ ĐỘI -->
+    <!-- ========================================================================= -->
+    <section class="step-container" id="step3Container">
+      <div class="card">
+        <h2 style="font-size: 1rem; font-weight: 800; margin-bottom: 0.25rem;">Bước 3: Chọn Phòng KTX & Tổ Đội</h2>
+        <p style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Dữ liệu phòng trống thực tế được đồng bộ tự động từ hệ thống
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">Chọn Dãy Nhà KTX:</label>
+          <select class="form-control" id="selectDay" onchange="onDayChanged()">
+            <option value="">-- Chọn Dãy --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Chọn Phòng Còn Trống Chỗ:</label>
+          <select class="form-control" id="selectPhong" onchange="onPhongChanged()">
+            <option value="">-- Vui lòng chọn Dãy trước --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Vị Trí Giường / Ghi Chú Phòng:</label>
+          <input type="text" class="form-control" id="inputGiuong" placeholder="Ví dụ: Giường 1, Giường 2...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tổ Đội Trưởng / Hạng Mục Thi Công:</label>
+          <input type="text" class="form-control" id="inputToDoi" placeholder="Ví dụ: Đội sắt Anh Nam, Đội bê tông...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Số Điện Thoại Công Nhân:</label>
+          <input type="tel" class="form-control" id="inputPhone" placeholder="09xxxxxxxx">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mã Nhân Viên (Nếu có):</label>
+          <input type="text" class="form-control" id="inputMaNv" placeholder="Tự gợi ý từ CCCD">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 1rem;">
+          <button type="button" class="btn btn-secondary" onclick="goToStep(2)" style="flex: 1;">
+            ← Quay Lại
+          </button>
+          <button type="button" class="btn btn-primary" onclick="goToStep(4)" style="flex: 2;">
+            Rà Soát Hồ Sơ (Bước 4) →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- BƯỚC 4: RÀ SOÁT HỒ SƠ & XÁC NHẬN TIẾP NHẬN -->
+    <!-- ========================================================================= -->
+    <section class="step-container" id="step4Container">
+      <div class="card">
+        <h2 style="font-size: 1rem; font-weight: 800; margin-bottom: 0.25rem;">Bước 4: Rà Soát & Xác Nhận Hồ Sơ</h2>
+        <p style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Kiểm tra lại toàn bộ thông tin trước khi ghi nhận vào hệ thống
+        </p>
+
+        <div style="background: #0f172a; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.08);">
+          <div class="data-row">
+            <span class="data-label">Họ và Tên:</span>
+            <span class="data-name" id="revName">-</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Số CCCD:</span>
+            <span class="data-value" id="revCccd">-</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Ngày sinh & Giới tính:</span>
+            <span class="data-value" id="revDobGender">-</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Nơi tiếp nhận:</span>
+            <span class="data-value" style="color: #6ee7b7; font-size: 0.92rem;" id="revRoom">-</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Tổ đội trưởng:</span>
+            <span class="data-value" id="revToDoi">-</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Số điện thoại:</span>
+            <span class="data-value" id="revPhone">-</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Ảnh CCCD 2 mặt:</span>
+            <span class="data-value" id="revPhotos">-</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-success" id="btnSubmitAll" onclick="submitFinalRegistration()" style="height: 48px; font-size: 0.95rem;">
+          ✓ XÁC NHẬN TIẾP NHẬN & VÀO KTX
+        </button>
+
+        <button type="button" class="btn btn-secondary" onclick="goToStep(3)" style="margin-top: 8px;">
+          ← Quay Lại Chỉnh Sửa
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- BƯỚC 5: TIẾP NHẬN THÀNH CÔNG -->
+    <!-- ========================================================================= -->
+    <section class="step-container" id="step5Container">
+      <div class="card" style="text-align: center; padding: 1.8rem 1rem;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(16,185,129,0.15); border: 2px solid #10b981; display: inline-flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #10b981; margin-bottom: 0.75rem;">
+          ✓
+        </div>
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: #10b981; margin-bottom: 0.35rem;">TIẾP NHẬN THÀNH CÔNG!</h2>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.2rem;">
+          Công nhân đã được ghi nhận vào danh sách lưu trú KTX Nam Tràng Cát
+        </p>
+
+        <div style="background: rgba(37,99,235,0.12); border: 1.5px solid #3b82f6; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+          <div style="font-size: 0.75rem; color: #93c5fd; font-weight: 700; text-transform: uppercase;">PHÒNG ĐƯỢC BỐ TRÍ</div>
+          <div style="font-size: 1.35rem; font-weight: 800; color: #fff; margin: 4px 0;" id="successRoomBadge">
+            DÃY 1 • PHÒNG 101
+          </div>
+          <div style="font-size: 0.82rem; color: #cbd5e1;" id="successWorkerName">
+            NGUYỄN VĂN A
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="resetFormForNextWorker()">
+          ➕ Đón Tiếp Công Nhân Tiếp Theo
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toastContainer"></div>
+
+  <!-- SCRIPT ENGINE -->
+  <script>
+    const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxAo8VYgKON07Tr1clVcXFKd3Xe8a--8t-0pHlVtLBB5x8reObHY1qh8FvJs0VjabqH/exec';
+
+    // Dữ liệu khai báo toàn cục
+    const formData = {
+      cccd: '',
+      hoTen: '',
+      dobFormatted: '',
+      gioiTinh: 'Nam',
+      diaChi: '',
+      ngayCap: '',
+      noiCap: '',
+      frontPhotoBase64: '',
+      backPhotoBase64: '',
+      dayTt: '',
+      phongTt: '',
+      viTriGiuong: '',
+      toDoi: '',
+      sdt: '',
+      maNv: ''
+    };
+
+    let allRoomsData = [];
+    let currentStep = 1;
+    let cameraStream = null;
+    let scanTimer = null;
+    let isCameraActive = false;
+    let currentFacingMode = 'environment';
+    let isZoomed = false;
+    let isTorchOn = false;
+
+    // Toast thông báo
+    function showToast(msg, type = 'info') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast-msg';
+      const icon = type === 'success' ? '✓' : type === 'error' ? '❌' : 'ℹ️';
+      t.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 250); }, 3000);
+    }
+
+    // Âm thanh BÍP khi nhận diện thành công
+    function playBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.16);
+      } catch (e) {}
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate([70, 40, 70]); } catch (e) {}
+      }
+    }
+
+    // Chuyển bước trong quy trình
+    function goToStep(step) {
+      if (step === 2 && !formData.cccd) {
+        showToast('Vui lòng quét hoặc nhập mã CCCD trước!', 'warning');
+        return;
+      }
+      if (step === 4 && (!formData.dayTt || !formData.phongTt)) {
+        showToast('Vui lòng chọn Dãy và Phòng ở Bước 3!', 'warning');
+        return;
+      }
+
+      currentStep = step;
+      document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.step-item').forEach((el, idx) => {
+        el.classList.remove('active');
+        if (idx + 1 < step) el.classList.add('completed');
+        else el.classList.remove('completed');
+        if (idx + 1 === step) el.classList.add('active');
+      });
+
+      const target = document.getElementById(`step${step}Container`);
+      if (target) target.classList.add('active');
+
+      if (step === 1) {
+        startCamera();
+      } else {
+        stopCamera();
+      }
+
+      if (step === 3) {
+        loadVacantRooms();
+      }
+
+      if (step === 4) {
+        renderReviewStep();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // =========================================================================
+    // CAMERA ENGINE: LIVE FULL HD + MULTI-TIER REAL-TIME SCANNER (60 FPS)
+    // =========================================================================
+    async function startCamera() {
+      stopCamera();
+      const videoEl = document.getElementById('videoPreview');
+      const statusText = document.getElementById('camStatusText');
+      const dot = document.getElementById('camStatusDot');
+      const btnToggle = document.getElementById('btnMasterCamToggle');
+
+      if (statusText) statusText.textContent = 'Đang khởi động camera HD...';
+      if (dot) dot.style.background = '#f59e0b';
+
+      try {
+        const constraints = {
+          audio: false,
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        };
+
+        cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoEl.srcObject = cameraStream;
+        await videoEl.play();
+
+        isCameraActive = true;
+        if (statusText) statusText.textContent = 'Camera HD đang quét...';
+        if (dot) dot.style.background = '#10b981';
+        if (btnToggle) btnToggle.textContent = 'Tắt Cam';
+
+        // Áp dụng lấy nét liên tục nếu có hỗ trợ
+        try {
+          const track = cameraStream.getVideoTracks()[0];
+          if (track && track.getCapabilities) {
+            const caps = track.getCapabilities();
+            const adv = {};
+            if (caps.focusMode && caps.focusMode.includes('continuous')) adv.focusMode = 'continuous';
+            if (caps.exposureMode && caps.exposureMode.includes('continuous')) adv.exposureMode = 'continuous';
+            if (Object.keys(adv).length > 0) await track.applyConstraints({ advanced: [adv] });
+          }
+        } catch (e) {}
+
+        // Kích hoạt bộ quét video siêu tốc
+        startVideoScanner();
+
+      } catch (err) {
+        console.warn('Lỗi mở camera video:', err);
+        if (statusText) statusText.textContent = 'Camera chưa sẵn sàng';
+        if (dot) dot.style.background = '#ef4444';
+        if (btnToggle) btnToggle.textContent = 'Bật Cam';
+        showToast('Vui lòng cấp quyền Camera trên trình duyệt để tự động quét!', 'warning');
+      }
+    }
+
+    function stopCamera() {
+      stopVideoScanner();
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+      isCameraActive = false;
+      const videoEl = document.getElementById('videoPreview');
+      if (videoEl) videoEl.srcObject = null;
+      const btnToggle = document.getElementById('btnMasterCamToggle');
+      if (btnToggle) btnToggle.textContent = 'Bật Cam';
+    }
+
+    function toggleCamera() {
+      if (isCameraActive) stopCamera();
+      else startCamera();
+    }
+
+    async function switchCamera() {
+      currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+      await startCamera();
+    }
+
+    async function toggleTorch() {
+      if (!cameraStream) return;
+      try {
+        const track = cameraStream.getVideoTracks()[0];
+        if (track && track.getCapabilities && track.getCapabilities().torch) {
+          isTorchOn = !isTorchOn;
+          await track.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+          const btn = document.getElementById('btnTorch');
+          if (btn) btn.classList.toggle('active', isTorchOn);
+          return;
+        }
+        showToast('Thiết bị không hỗ trợ đèn Flash trợ sáng', 'info');
+      } catch (e) {
+        showToast('Không thể bật Flash trên trình duyệt này', 'info');
+      }
+    }
+
+    async function toggleZoom() {
+      if (!cameraStream) return;
+      isZoomed = !isZoomed;
+      const videoEl = document.getElementById('videoPreview');
+      const btn = document.getElementById('btnZoom');
+
+      try {
+        const track = cameraStream.getVideoTracks()[0];
+        if (track && track.getCapabilities && track.getCapabilities().zoom) {
+          const caps = track.getCapabilities();
+          const target = isZoomed ? Math.min(caps.zoom.max || 2, 2.5) : (caps.zoom.min || 1);
+          await track.applyConstraints({ advanced: [{ zoom: target }] });
+        }
+      } catch (e) {}
+
+      if (videoEl) videoEl.style.transform = isZoomed ? 'scale(1.45)' : 'scale(1.0)';
+      if (btn) {
+        btn.classList.toggle('active', isZoomed);
+        btn.innerHTML = isZoomed ? '🔍 <span>1x</span>' : '🔍 <span>2x</span>';
+      }
+      showToast(isZoomed ? 'Đã bật Zoom 2x macro' : 'Về mức bình thường 1x', 'info');
+    }
+
+    // =========================================================================
+    // REAL-TIME VIDEO SCANNER V2 (1:1 SENSOR CROP + LAPLACIAN + CONTRAST)
+    // =========================================================================
+    function startVideoScanner() {
+      stopVideoScanner();
+      let frameCounter = 0;
+      let isBusy = false;
+
+      const canvas1 = document.createElement('canvas');
+      const ctx1 = canvas1.getContext('2d', { willReadFrequently: true });
+      const canvas2 = document.createElement('canvas');
+      const ctx2 = canvas2.getContext('2d', { willReadFrequently: true });
+
+      const nativeDetector = ('BarcodeDetector' in window)
+        ? new BarcodeDetector({ formats: ['qr_code'] })
+        : null;
+
+      function sharpen(data, w, h) {
+        var src = new Uint8ClampedArray(data);
+        for (var y = 1; y < h - 1; y++) {
+          for (var x = 1; x < w - 1; x++) {
+            var i = (y * w + x) * 4;
+            for (var c = 0; c < 3; c++) {
+              var v = 5 * src[i+c] - src[((y-1)*w+x)*4+c] - src[((y+1)*w+x)*4+c]
+                      - src[(y*w+x-1)*4+c] - src[(y*w+x+1)*4+c];
+              data[i+c] = v < 0 ? 0 : v > 255 ? 255 : v;
+            }
+          }
+        }
+      }
+
+      function stretchContrast(data, len) {
+        var mn = 255, mx = 0;
+        for (var i = 0; i < len; i += 16) {
+          var g = (data[i] * 77 + data[i+1] * 150 + data[i+2] * 29) >> 8;
+          if (g < mn) mn = g;
+          if (g > mx) mx = g;
+        }
+        var range = mx - mn;
+        if (range < 20) return;
+        var scale = 255.0 / range;
+        for (var i = 0; i < len; i += 4) {
+          data[i]   = Math.min(255, Math.max(0, ((data[i] - mn) * scale) | 0));
+          data[i+1] = Math.min(255, Math.max(0, ((data[i+1] - mn) * scale) | 0));
+          data[i+2] = Math.min(255, Math.max(0, ((data[i+2] - mn) * scale) | 0));
+        }
+      }
+
+      function checkValid(str) {
+        if (!str) return null;
+        return (str.includes('|') || str.length >= 9) ? str : null;
+      }
+
+      scanTimer = setInterval(async () => {
+        if (!isCameraActive || isBusy) return;
+        const videoEl = document.getElementById('videoPreview');
+        if (!videoEl || videoEl.paused || videoEl.ended || videoEl.readyState < 2) return;
+        const vw = videoEl.videoWidth;
+        const vh = videoEl.videoHeight;
+        if (!vw || !vh || vw < 50 || vh < 50) return;
+
+        isBusy = true;
+        frameCounter++;
+        const cycle = frameCounter % 4;
+
+        try {
+          // 1. GPU BarcodeDetector trên video gốc
+          if (nativeDetector) {
+            try {
+              const barcodes = await nativeDetector.detect(videoEl);
+              if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+                const v = checkValid(barcodes[0].rawValue);
+                if (v) { onQrDetected(v); return; }
+              }
+            } catch (e) {}
+          }
+
+          const isPortrait = vh > vw;
+
+          if (cycle <= 1) {
+            // CROP TRUNG TÂM 1:1 MACRO SENSOR
+            const centerSize = Math.min(vw, vh, isPortrait ? 850 : 720);
+            const cX = Math.max(0, Math.round((vw - centerSize) / 2));
+            const cY = Math.max(0, Math.round((vh - centerSize) / 2));
+            canvas1.width = centerSize; canvas1.height = centerSize;
+            ctx1.imageSmoothingEnabled = false;
+            ctx1.drawImage(videoEl, cX, cY, centerSize, centerSize, 0, 0, centerSize, centerSize);
+
+            if (nativeDetector) {
+              try {
+                const bcs = await nativeDetector.detect(canvas1);
+                if (bcs && bcs.length > 0 && bcs[0].rawValue) {
+                  const v = checkValid(bcs[0].rawValue);
+                  if (v) { onQrDetected(v); return; }
+                }
+              } catch (e) {}
+            }
+
+            if (typeof jsQR === 'function') {
+              const imgData = ctx1.getImageData(0, 0, centerSize, centerSize);
+              if (cycle === 1) sharpen(imgData.data, centerSize, centerSize);
+              const code = jsQR(imgData.data, centerSize, centerSize, { inversionAttempts: 'attemptBoth' });
+              if (code && checkValid(code.data)) {
+                onQrDetected(code.data);
+                return;
+              }
+            }
+          } else {
+            // CROP GÓC PHẢI THẺ CCCD 1:1 SENSOR
+            const cardW = Math.round(isPortrait ? vw * 0.88 : vw * 0.60);
+            const cardH = Math.round(cardW / 1.586);
+            const cx = Math.round(vw / 2);
+            const cy = Math.round(vh / 2);
+            const cardLeft = cx - Math.round(cardW / 2);
+            const cardTop = cy - Math.round(cardH / 2);
+
+            const roiX = Math.max(0, cardLeft + Math.round(cardW * 0.38));
+            const roiY = Math.max(0, cardTop - Math.round(cardH * 0.12));
+            const roiW = Math.min(vw - roiX, Math.round(cardW * 0.64));
+            const roiH = Math.min(vh - roiY, Math.round(cardH * 0.82));
+
+            canvas2.width = roiW; canvas2.height = roiH;
+            ctx2.imageSmoothingEnabled = false;
+            ctx2.drawImage(videoEl, roiX, roiY, roiW, roiH, 0, 0, roiW, roiH);
+
+            if (nativeDetector) {
+              try {
+                const bcs = await nativeDetector.detect(canvas2);
+                if (bcs && bcs.length > 0 && bcs[0].rawValue) {
+                  const v = checkValid(bcs[0].rawValue);
+                  if (v) { onQrDetected(v); return; }
+                }
+              } catch (e) {}
+            }
+
+            if (typeof jsQR === 'function') {
+              const imgData = ctx2.getImageData(0, 0, roiW, roiH);
+              stretchContrast(imgData.data, imgData.data.length);
+              sharpen(imgData.data, roiW, roiH);
+              const code = jsQR(imgData.data, roiW, roiH, { inversionAttempts: 'attemptBoth' });
+              if (code && checkValid(code.data)) {
+                onQrDetected(code.data);
+                return;
+              }
+            }
+          }
+
+        } catch (err) {}
+        finally { isBusy = false; }
+      }, 60);
+    }
+
+    function stopVideoScanner() {
+      if (scanTimer) {
+        clearInterval(scanTimer);
+        scanTimer = null;
+      }
+    }
+
+    // Xử lý khi nhận diện thành công QR CCCD
+    function onQrDetected(rawQr) {
+      playBeep();
+      stopVideoScanner();
+      stopCamera();
+
+      const parsed = parseVietnameseCCCD(rawQr);
+      if (!parsed || !parsed.cccd) {
+        showToast('Mã QR không đúng định dạng CCCD chuẩn', 'warning');
+        startVideoScanner();
+        return;
+      }
+
+      formData.cccd = parsed.cccd;
+      formData.hoTen = (parsed.hoTen || '').toUpperCase();
+      formData.dobFormatted = parsed.dobFormatted || '';
+      formData.gioiTinh = parsed.gioiTinh || 'Nam';
+      formData.diaChi = parsed.diaChi || '';
+      formData.ngayCap = parsed.ngayCap || '';
+      formData.maNv = parsed.cccd.slice(-7);
+
+      // Hiển thị huy hiệu đã xác thực
+      document.getElementById('badgeCccd').textContent = parsed.cccd;
+      document.getElementById('badgeCccdNum').textContent = parsed.cccd;
+      document.getElementById('badgeName').textContent = formData.hoTen;
+      document.getElementById('badgeDob').textContent = formData.dobFormatted || 'Chưa rõ';
+      document.getElementById('badgeGender').textContent = formData.gioiTinh;
+      document.getElementById('badgeAddress').textContent = formData.diaChi || 'Chưa rõ';
+      if (formData.ngayCap) {
+        document.getElementById('badgeIssueDate').textContent = formData.ngayCap;
+        document.getElementById('rowIssueDate').style.display = 'flex';
+      }
+
+      document.getElementById('parsedCard').style.display = 'block';
+      showToast('✓ Đã tự động nhận diện CCCD của ' + formData.hoTen, 'success');
+
+      // Tự động kiểm tra trên hệ thống
+      checkExistingWorker(parsed.cccd);
+    }
+
+    // Parser CCCD chuẩn Việt Nam
+    function parseVietnameseCCCD(text) {
+      if (!text) return null;
+      const clean = text.trim();
+      const parts = clean.split('|');
+      if (parts.length >= 6) {
+        const cccd = (parts[0] || '').trim();
+        const hoTen = (parts[2] || '').trim();
+        const dobRaw = (parts[3] || '').trim();
+        const gioiTinh = (parts[4] || '').trim();
+        const diaChi = (parts[5] || '').trim();
+        const ngayCapRaw = (parts[6] || '').trim();
+
+        let dobFormatted = '';
+        if (/^\d{8}$/.test(dobRaw)) {
+          dobFormatted = dobRaw.substring(0,2) + '/' + dobRaw.substring(2,4) + '/' + dobRaw.substring(4,8);
+        }
+
+        let ngayCapFormatted = '';
+        if (/^\d{8}$/.test(ngayCapRaw)) {
+          ngayCapFormatted = ngayCapRaw.substring(0,2) + '/' + ngayCapRaw.substring(2,4) + '/' + ngayCapRaw.substring(4,8);
+        }
+
+        return { cccd, hoTen, dobFormatted, gioiTinh, diaChi, ngayCap: ngayCapFormatted };
+      }
+
+      // Nhập 12 số
+      const digits = clean.replace(/\D/g, '');
+      if (digits.length === 12 || digits.length === 9) {
+        return { cccd: digits, hoTen: '', dobFormatted: '', gioiTinh: 'Nam', diaChi: '', ngayCap: '' };
+      }
+      return null;
+    }
+
+    // Kiểm tra CCCD đã lưu trú chưa
+    async function checkExistingWorker(cccd) {
+      try {
+        const res = await callApiGet(`action=scanCccdLookup&cccd=${cccd}`);
+        if (res && res.exists && res.worker) {
+          showToast(`⚠️ Công nhân đã đăng ký trước đó tại Dãy ${res.worker.dayTt} • P.${res.worker.phongTt}`, 'info');
+          if (res.worker.tieuDoiTruong) formData.toDoi = res.worker.tieuDoiTruong;
+          if (res.worker.sdt) formData.sdt = res.worker.sdt;
+        }
+      } catch (e) {}
+    }
+
+    // =========================================================================
+    // BƯỚC 2: XỬ LÝ ẢNH 2 MẶT CCCD
+    // =========================================================================
+    async function handleCccdSidePhoto(inputEl, side) {
+      const file = inputEl && inputEl.files && inputEl.files[0];
+      if (!file) return;
+
+      showToast('Đang tối ưu dung lượng ảnh...', 'info');
+      try {
+        const base64 = await compressPhoto(file, 1600, 0.85);
+        if (side === 'front') {
+          formData.frontPhotoBase64 = base64;
+          document.getElementById('imgFrontPreview').src = base64;
+          document.getElementById('imgFrontPreview').style.display = 'block';
+          document.getElementById('phFrontPlaceholder').style.display = 'none';
+          document.getElementById('badgeFrontOk').style.display = 'block';
+          document.getElementById('boxFrontPhoto').classList.add('has-image');
+        } else {
+          formData.backPhotoBase64 = base64;
+          document.getElementById('imgBackPreview').src = base64;
+          document.getElementById('imgBackPreview').style.display = 'block';
+          document.getElementById('phBackPlaceholder').style.display = 'none';
+          document.getElementById('badgeBackOk').style.display = 'block';
+          document.getElementById('boxBackPhoto').classList.add('has-image');
+        }
+        showToast('✓ Đã chụp ảnh ' + (side === 'front' ? 'mặt trước' : 'mặt sau') + ' thành công!', 'success');
+      } catch (err) {
+        showToast('Lỗi nén ảnh: ' + err.toString(), 'error');
+      }
+      inputEl.value = '';
+    }
+
+    function compressPhoto(file, maxDim, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const w = img.width;
+            const h = img.height;
+            const scale = Math.min(1, maxDim / Math.max(w, h));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(w * scale);
+            canvas.height = Math.round(h * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // =========================================================================
+    // BƯỚC 3: TẢI PHÒNG TRỐNG TỪ GOOGLE SHEETS BACKEND
+    // =========================================================================
+    async function loadVacantRooms() {
+      const selectDay = document.getElementById('selectDay');
+      const selectPhong = document.getElementById('selectPhong');
+
+      if (allRoomsData.length === 0) {
+        showToast('Đang tải danh sách phòng trống thực tế...', 'info');
+        try {
+          const res = await callApiGet('action=getWorkerRegistrationRooms');
+          if (res && res.success && res.data && Array.isArray(res.data.rooms)) {
+            allRoomsData = res.data.rooms;
+          }
+        } catch (e) {
+          console.warn('Lỗi tải phòng:', e);
+        }
+      }
+
+      // Điền Dãy
+      const days = [...new Set(allRoomsData.map(r => String(r.day)))].sort();
+      selectDay.innerHTML = '<option value="">-- Chọn Dãy --</option>';
+      days.forEach(d => {
+        selectDay.innerHTML += `<option value="${d}">Dãy ${d}</option>`;
+      });
+
+      // Điền sẵn form nếu có
+      if (formData.dayTt) selectDay.value = formData.dayTt;
+      onDayChanged();
+      if (formData.phongTt) selectPhong.value = formData.phongTt;
+      if (formData.toDoi) document.getElementById('inputToDoi').value = formData.toDoi;
+      if (formData.sdt) document.getElementById('inputPhone').value = formData.sdt;
+      if (formData.maNv) document.getElementById('inputMaNv').value = formData.maNv;
+    }
+
+    function onDayChanged() {
+      const day = document.getElementById('selectDay').value;
+      formData.dayTt = day;
+      const selectPhong = document.getElementById('selectPhong');
+
+      if (!day) {
+        selectPhong.innerHTML = '<option value="">-- Vui lòng chọn Dãy trước --</option>';
+        return;
+      }
+
+      const roomsInDay = allRoomsData.filter(r => String(r.day) === day);
+      selectPhong.innerHTML = '<option value="">-- Chọn Phòng --</option>';
+      roomsInDay.forEach(r => {
+        const slots = (r.availableSlots !== undefined) ? r.availableSlots : (r.capacity - (r.activeCount || 0));
+        selectPhong.innerHTML += `<option value="${r.phong}">Phòng ${r.phong} (Trống ${slots}/${r.capacity} chỗ)</option>`;
+      });
+    }
+
+    function onPhongChanged() {
+      formData.phongTt = document.getElementById('selectPhong').value;
+    }
+
+    // =========================================================================
+    // BƯỚC 4: RÀ SOÁT & HOÀN TẤT
+    // =========================================================================
+    function renderReviewStep() {
+      formData.viTriGiuong = document.getElementById('inputGiuong').value.trim();
+      formData.toDoi = document.getElementById('inputToDoi').value.trim();
+      formData.sdt = document.getElementById('inputPhone').value.trim();
+      formData.maNv = document.getElementById('inputMaNv').value.trim() || formData.cccd.slice(-7);
+
+      document.getElementById('revName').textContent = formData.hoTen || 'Chưa có tên';
+      document.getElementById('revCccd').textContent = formData.cccd;
+      document.getElementById('revDobGender').textContent = `${formData.dobFormatted || 'Chưa rõ'} • ${formData.gioiTinh}`;
+      document.getElementById('revRoom').textContent = `Dãy ${formData.dayTt} • Phòng ${formData.phongTt}${formData.viTriGiuong ? ' (' + formData.viTriGiuong + ')' : ''}`;
+      document.getElementById('revToDoi').textContent = formData.toDoi || 'Chưa phân';
+      document.getElementById('revPhone').textContent = formData.sdt || 'Chưa có';
+
+      const photoCount = (formData.frontPhotoBase64 ? 1 : 0) + (formData.backPhotoBase64 ? 1 : 0);
+      document.getElementById('revPhotos').textContent = photoCount === 2 ? '✓ Đủ 2 mặt' : photoCount === 1 ? '⚠️ Có 1 mặt' : 'Chưa chụp';
+    }
+
+    async function submitFinalRegistration() {
+      const btn = document.getElementById('btnSubmitAll');
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Đang ghi nhận vào Google Sheets...';
+
+      try {
+        const payload = {
+          hoTen: formData.hoTen,
+          cccd: formData.cccd,
+          dobFormatted: formData.dobFormatted,
+          gioiTinh: formData.gioiTinh,
+          diaChi: formData.diaChi,
+          ngayCap: formData.ngayCap,
+          noiCap: formData.noiCap,
+          dayTt: formData.dayTt,
+          phongTt: formData.phongTt,
+          viTriGiuong: formData.viTriGiuong,
+          tieuDoiTruong: formData.toDoi,
+          sdt: formData.sdt,
+          maNv: formData.maNv,
+          frontPhotoBase64: formData.frontPhotoBase64,
+          backPhotoBase64: formData.backPhotoBase64
+        };
+
+        const res = await callApiPost('addWorker', payload);
+        if (res && res.success) {
+          document.getElementById('successRoomBadge').textContent = `DÃY ${formData.dayTt} • PHÒNG ${formData.phongTt}`;
+          document.getElementById('successWorkerName').textContent = formData.hoTen;
+          goToStep(5);
+          showToast('🎉 Đã ghi nhận thành công vào KTX!', 'success');
+        } else {
+          showToast('Lỗi lưu dữ liệu: ' + (res.message || 'Không thể lưu'), 'error');
+          btn.disabled = false;
+          btn.innerHTML = '✓ XÁC NHẬN TIẾP NHẬN & VÀO KTX';
+        }
+      } catch (err) {
+        showToast('Lỗi kết nối máy chủ: ' + err.toString(), 'error');
+        btn.disabled = false;
+        btn.innerHTML = '✓ XÁC NHẬN TIẾP NHẬN & VÀO KTX';
+      }
+    }
+
+    function resetFormForNextWorker() {
+      formData.cccd = '';
+      formData.hoTen = '';
+      formData.dobFormatted = '';
+      formData.gioiTinh = 'Nam';
+      formData.diaChi = '';
+      formData.ngayCap = '';
+      formData.frontPhotoBase64 = '';
+      formData.backPhotoBase64 = '';
+      formData.viTriGiuong = '';
+      formData.toDoi = '';
+      formData.sdt = '';
+      formData.maNv = '';
+
+      document.getElementById('parsedCard').style.display = 'none';
+      document.getElementById('imgFrontPreview').style.display = 'none';
+      document.getElementById('phFrontPlaceholder').style.display = 'block';
+      document.getElementById('badgeFrontOk').style.display = 'none';
+      document.getElementById('boxFrontPhoto').classList.remove('has-image');
+
+      document.getElementById('imgBackPreview').style.display = 'none';
+      document.getElementById('phBackPlaceholder').style.display = 'block';
+      document.getElementById('badgeBackOk').style.display = 'none';
+      document.getElementById('boxBackPhoto').classList.remove('has-image');
+
+      goToStep(1);
+    }
+
+    // =========================================================================
+    // API CALL HELPERS
+    // =========================================================================
+    async function callApiGet(queryString) {
+      const url = `${API_ENDPOINT}?${queryString}`;
+      const res = await fetch(url);
+      return await res.json();
+    }
+
+    async function callApiPost(action, data) {
+      const payload = { action, ...data };
+      const res = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    }
+
+    // Dự phòng tải ảnh quét thủ công
+    async function handleFileSelected(inputEl) {
+      const file = inputEl && inputEl.files && inputEl.files[0];
+      if (!file) return;
+
+      showToast('Đang giải mã ảnh CCCD...', 'info');
+      try {
+        const qrRaw = await scanQrFromFile(file);
+        if (qrRaw) onQrDetected(qrRaw);
+        else showToast('Không tìm thấy mã QR trên ảnh tải lên', 'warning');
+      } catch (e) {
+        showToast('Lỗi đọc ảnh: ' + e.toString(), 'error');
+      }
+      inputEl.value = '';
+    }
+
+    function scanQrFromFile(file) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = async () => {
+          URL.revokeObjectURL(url);
+          // Thử BarcodeDetector
+          if ('BarcodeDetector' in window) {
+            try {
+              const det = new BarcodeDetector({ formats: ['qr_code'] });
+              const bcs = await det.detect(img);
+              if (bcs && bcs[0] && bcs[0].rawValue) { resolve(bcs[0].rawValue); return; }
+            } catch (e) {}
+          }
+          // Thử jsQR trên crop góc phải
+          const c = document.createElement('canvas');
+          c.width = img.width; c.height = img.height;
+          const ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const d = ctx.getImageData(0, 0, c.width, c.height);
+          if (typeof jsQR === 'function') {
+            const code = jsQR(d.data, c.width, c.height, { inversionAttempts: 'attemptBoth' });
+            if (code && code.data) { resolve(code.data); return; }
+          }
+          resolve(null);
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
+    }
+
+    function promptManualCccd() {
+      const val = prompt('Nhập chuỗi QR CCCD hoặc 12 số CCCD:');
+      if (val && val.trim()) onQrDetected(val.trim());
+    }
+
+    // Tự động khởi động camera khi mở trang
+    window.addEventListener('DOMContentLoaded', () => {
+      startCamera();
+    });
+  </script>
+</body>
+</html>
