@@ -474,8 +474,14 @@
     .photo-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 1rem;
+    }
+
+    .photo-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .photo-box {
@@ -486,7 +492,6 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
       background: #f8fafc;
       position: relative;
       overflow: hidden;
@@ -496,19 +501,16 @@
       transition: all 0.2s;
     }
 
-    .photo-box:active {
-      background: #f1f5f9;
-    }
-
     .photo-box.has-image {
       border-style: solid;
       border-color: #10b981;
+      background: #0f172a;
     }
 
     .photo-box img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       position: absolute;
       inset: 0;
     }
@@ -525,6 +527,70 @@
       font-size: 0.68rem;
       font-weight: 700;
       color: #6ee7b7;
+      z-index: 5;
+    }
+
+    .photo-clear-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(239,68,68,0.92);
+      color: #fff;
+      border: none;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      line-height: 1;
+    }
+
+    .photo-btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .btn-photo-action {
+      padding: 7px 4px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      transition: all 0.15s;
+    }
+
+    .btn-photo-action.btn-camera {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+    }
+
+    .btn-photo-action.btn-camera:active {
+      background: #dbeafe;
+      transform: scale(0.98);
+    }
+
+    .btn-photo-action.btn-gallery {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+    }
+
+    .btn-photo-action.btn-gallery:active {
+      background: #dcfce7;
+      transform: scale(0.98);
     }
 
     /* TOAST */
@@ -689,53 +755,85 @@
           </div>
         </div>
 
-        <!-- TÙY CHỌN DỰ PHÒNG -->
-        <div style="display: flex; gap: 8px; margin-top: 0.85rem;">
-          <label class="btn btn-secondary" style="flex: 1; font-size: 0.76rem; height: 38px;">
-            <span>📁 Tải ảnh từ máy</span>
-            <input type="file" accept="image/*" style="display: none;" onchange="handleFileSelected(this)">
-          </label>
-          <button type="button" class="btn btn-secondary" style="flex: 1; font-size: 0.76rem; height: 38px;" onclick="promptManualCccd()">
-            ✍️ Nhập số CCCD
-          </button>
+        <!-- TÙY CHỌN DỰ PHÒNG KHI KHÔNG CÓ THẺ GỐC HOẶC CÓ SẴN ẢNH TRONG MÁY -->
+        <div style="margin-top: 0.9rem; padding: 0.8rem; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; text-align: center;">
+          <div style="font-size: 0.76rem; font-weight: 800; color: #334155; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 5px;">
+            <span>📂</span> <span>BẠN CÓ SẴN ẢNH CCCD TRONG THƯ VIỆN ẢNH?</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <label class="btn btn-primary" style="flex: 1.3; font-size: 0.78rem; height: 40px; background: linear-gradient(135deg, #2563eb, #1d4ed8); display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; margin: 0;">
+              <span>🖼️ Tải ảnh từ thư viện</span>
+              <input type="file" accept="image/*" style="display: none;" onchange="handleFileSelected(this)">
+            </label>
+            <button type="button" class="btn btn-secondary" style="flex: 1; font-size: 0.78rem; height: 40px; margin: 0;" onclick="promptManualCccd()">
+              ✍️ Nhập số CCCD
+            </button>
+          </div>
+          <div style="font-size: 0.68rem; color: #64748b; margin-top: 6px;">
+            💡 Chọn ảnh mặt trước để hệ thống tự quét QR & lưu luôn ảnh vào hồ sơ
+          </div>
         </div>
       </div>
     </section>
 
     <!-- ========================================================================= -->
-    <!-- BƯỚC 2: CHỤP 2 MẶT THẺ CCCD -->
+    <!-- BƯỚC 2: ẢNH 2 MẶT THẺ CCCD (CHỤP HOẶC TẢI TỪ THƯ VIỆN) -->
     <!-- ========================================================================= -->
     <section class="step-container" id="step2Container">
       <div class="card">
-        <h2 style="font-size: 1rem; font-weight: 800; margin-bottom: 0.25rem;">Bước 2: Chụp Ảnh 2 Mặt Thẻ CCCD</h2>
+        <h2 style="font-size: 1rem; font-weight: 800; margin-bottom: 0.25rem;">Bước 2: Ảnh 2 Mặt Thẻ CCCD</h2>
         <p style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Chụp ảnh rõ nét mặt trước và mặt sau thẻ để lưu trữ hồ sơ
+          Chụp ảnh trực tiếp hoặc tải từ thư viện ảnh điện thoại
         </p>
 
         <div class="photo-grid">
           <!-- MẶT TRƯỚC -->
-          <label class="photo-box" id="boxFrontPhoto">
-            <div id="phFrontPlaceholder">
-              <div style="font-size: 1.6rem; margin-bottom: 4px;">🪪</div>
-              <div style="font-size: 0.78rem; font-weight: 700;">Mặt Trước CCCD</div>
-              <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">Bấm để chụp</div>
+          <div class="photo-card" id="cardFrontPhoto">
+            <div class="photo-box" id="boxFrontPhoto">
+              <div id="phFrontPlaceholder">
+                <div style="font-size: 1.6rem; margin-bottom: 4px;">🪪</div>
+                <div style="font-size: 0.8rem; font-weight: 800; color: #1e293b;">Mặt Trước CCCD</div>
+                <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">Chưa có ảnh</div>
+              </div>
+              <img id="imgFrontPreview" style="display: none;">
+              <div class="photo-badge" id="badgeFrontOk" style="display: none;">✓ Đã có mặt trước</div>
+              <button type="button" class="photo-clear-btn" id="btnClearFront" onclick="clearCccdPhoto('front', event)" style="display: none;" title="Xóa ảnh">&times;</button>
             </div>
-            <img id="imgFrontPreview" style="display: none;">
-            <div class="photo-badge" id="badgeFrontOk" style="display: none;">✓ Đã chụp mặt trước</div>
-            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleCccdSidePhoto(this, 'front')">
-          </label>
+            <div class="photo-btn-group">
+              <label class="btn-photo-action btn-camera" title="Chụp ảnh mới bằng camera">
+                <span>📷 Chụp</span>
+                <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleCccdSidePhoto(this, 'front')">
+              </label>
+              <label class="btn-photo-action btn-gallery" title="Chọn ảnh có sẵn từ thư viện ảnh">
+                <span>🖼️ Thư viện</span>
+                <input type="file" accept="image/*" style="display: none;" onchange="handleCccdSidePhoto(this, 'front')">
+              </label>
+            </div>
+          </div>
 
           <!-- MẶT SAU -->
-          <label class="photo-box" id="boxBackPhoto">
-            <div id="phBackPlaceholder">
-              <div style="font-size: 1.6rem; margin-bottom: 4px;">💳</div>
-              <div style="font-size: 0.78rem; font-weight: 700;">Mặt Sau CCCD</div>
-              <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">Bấm để chụp</div>
+          <div class="photo-card" id="cardBackPhoto">
+            <div class="photo-box" id="boxBackPhoto">
+              <div id="phBackPlaceholder">
+                <div style="font-size: 1.6rem; margin-bottom: 4px;">💳</div>
+                <div style="font-size: 0.8rem; font-weight: 800; color: #1e293b;">Mặt Sau CCCD</div>
+                <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">Chưa có ảnh</div>
+              </div>
+              <img id="imgBackPreview" style="display: none;">
+              <div class="photo-badge" id="badgeBackOk" style="display: none;">✓ Đã có mặt sau</div>
+              <button type="button" class="photo-clear-btn" id="btnClearBack" onclick="clearCccdPhoto('back', event)" style="display: none;" title="Xóa ảnh">&times;</button>
             </div>
-            <img id="imgBackPreview" style="display: none;">
-            <div class="photo-badge" id="badgeBackOk" style="display: none;">✓ Đã chụp mặt sau</div>
-            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleCccdSidePhoto(this, 'back')">
-          </label>
+            <div class="photo-btn-group">
+              <label class="btn-photo-action btn-camera" title="Chụp ảnh mới bằng camera">
+                <span>📷 Chụp</span>
+                <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleCccdSidePhoto(this, 'back')">
+              </label>
+              <label class="btn-photo-action btn-gallery" title="Chọn ảnh có sẵn từ thư viện ảnh">
+                <span>🖼️ Thư viện</span>
+                <input type="file" accept="image/*" style="display: none;" onchange="handleCccdSidePhoto(this, 'back')">
+              </label>
+            </div>
+          </div>
         </div>
 
         <div style="display: flex; gap: 8px;">
@@ -1294,6 +1392,31 @@
       return (fixed && (fixed.includes('|') || fixed.length >= 9)) ? fixed : null;
     }
 
+    function applyParsedData(parsed) {
+      formData.cccd = parsed.cccd;
+      formData.hoTen = (parsed.hoTen || '').toUpperCase();
+      formData.dobFormatted = parsed.dobFormatted || '';
+      formData.gioiTinh = parsed.gioiTinh || 'Nam';
+      formData.diaChi = parsed.diaChi || '';
+      formData.ngayCap = parsed.ngayCap || '';
+      formData.maNv = parsed.cccd.slice(-7);
+
+      // Hiển thị huy hiệu đã xác thực
+      document.getElementById('badgeCccd').textContent = parsed.cccd;
+      document.getElementById('badgeCccdNum').textContent = parsed.cccd;
+      document.getElementById('badgeName').textContent = formData.hoTen || 'CHƯA CẬP NHẬT TÊN';
+      document.getElementById('badgeDob').textContent = formData.dobFormatted || 'Chưa rõ';
+      document.getElementById('badgeGender').textContent = formData.gioiTinh;
+      document.getElementById('badgeAddress').textContent = formData.diaChi || 'Chưa rõ';
+      if (formData.ngayCap) {
+        document.getElementById('badgeIssueDate').textContent = formData.ngayCap;
+        document.getElementById('rowIssueDate').style.display = 'flex';
+      }
+
+      document.getElementById('parsedCard').style.display = 'block';
+      checkExistingWorker(parsed.cccd);
+    }
+
     // Xử lý khi nhận diện thành công QR CCCD
     function onQrDetected(rawQr) {
       playBeep();
@@ -1307,31 +1430,8 @@
         return;
       }
 
-      formData.cccd = parsed.cccd;
-      formData.hoTen = (parsed.hoTen || '').toUpperCase();
-      formData.dobFormatted = parsed.dobFormatted || '';
-      formData.gioiTinh = parsed.gioiTinh || 'Nam';
-      formData.diaChi = parsed.diaChi || '';
-      formData.ngayCap = parsed.ngayCap || '';
-      formData.maNv = parsed.cccd.slice(-7);
-
-      // Hiển thị huy hiệu đã xác thực
-      document.getElementById('badgeCccd').textContent = parsed.cccd;
-      document.getElementById('badgeCccdNum').textContent = parsed.cccd;
-      document.getElementById('badgeName').textContent = formData.hoTen;
-      document.getElementById('badgeDob').textContent = formData.dobFormatted || 'Chưa rõ';
-      document.getElementById('badgeGender').textContent = formData.gioiTinh;
-      document.getElementById('badgeAddress').textContent = formData.diaChi || 'Chưa rõ';
-      if (formData.ngayCap) {
-        document.getElementById('badgeIssueDate').textContent = formData.ngayCap;
-        document.getElementById('rowIssueDate').style.display = 'flex';
-      }
-
-      document.getElementById('parsedCard').style.display = 'block';
-      showToast('✓ Đã tự động nhận diện CCCD của ' + formData.hoTen, 'success');
-
-      // Tự động kiểm tra trên hệ thống
-      checkExistingWorker(parsed.cccd);
+      applyParsedData(parsed);
+      showToast('✓ Đã tự động nhận diện CCCD của ' + (formData.hoTen || formData.cccd), 'success');
     }
 
     // Sửa lỗi hiển thị tiếng Việt có dấu khi máy quét đọc theo chuẩn byte khác
@@ -1408,6 +1508,8 @@
           document.getElementById('phFrontPlaceholder').style.display = 'none';
           document.getElementById('badgeFrontOk').style.display = 'block';
           document.getElementById('boxFrontPhoto').classList.add('has-image');
+          const btnF = document.getElementById('btnClearFront');
+          if (btnF) btnF.style.display = 'flex';
         } else {
           formData.backPhotoBase64 = base64;
           document.getElementById('imgBackPreview').src = base64;
@@ -1415,12 +1517,38 @@
           document.getElementById('phBackPlaceholder').style.display = 'none';
           document.getElementById('badgeBackOk').style.display = 'block';
           document.getElementById('boxBackPhoto').classList.add('has-image');
+          const btnB = document.getElementById('btnClearBack');
+          if (btnB) btnB.style.display = 'flex';
         }
-        showToast('✓ Đã chụp ảnh ' + (side === 'front' ? 'mặt trước' : 'mặt sau') + ' thành công!', 'success');
+        showToast('✓ Đã tải ảnh ' + (side === 'front' ? 'mặt trước' : 'mặt sau') + ' thành công!', 'success');
       } catch (err) {
         showToast('Lỗi nén ảnh: ' + err.toString(), 'error');
       }
       inputEl.value = '';
+    }
+
+    function clearCccdPhoto(side, e) {
+      if (e) e.stopPropagation();
+      if (side === 'front') {
+        formData.frontPhotoBase64 = '';
+        document.getElementById('imgFrontPreview').src = '';
+        document.getElementById('imgFrontPreview').style.display = 'none';
+        document.getElementById('phFrontPlaceholder').style.display = 'block';
+        document.getElementById('badgeFrontOk').style.display = 'none';
+        document.getElementById('boxFrontPhoto').classList.remove('has-image');
+        const btn = document.getElementById('btnClearFront');
+        if (btn) btn.style.display = 'none';
+      } else {
+        formData.backPhotoBase64 = '';
+        document.getElementById('imgBackPreview').src = '';
+        document.getElementById('imgBackPreview').style.display = 'none';
+        document.getElementById('phBackPlaceholder').style.display = 'block';
+        document.getElementById('badgeBackOk').style.display = 'none';
+        document.getElementById('boxBackPhoto').classList.remove('has-image');
+        const btn = document.getElementById('btnClearBack');
+        if (btn) btn.style.display = 'none';
+      }
+      showToast('Đã xóa ảnh ' + (side === 'front' ? 'mặt trước' : 'mặt sau'), 'info');
     }
 
     function compressPhoto(file, maxDim, quality) {
@@ -1585,11 +1713,15 @@
       document.getElementById('phFrontPlaceholder').style.display = 'block';
       document.getElementById('badgeFrontOk').style.display = 'none';
       document.getElementById('boxFrontPhoto').classList.remove('has-image');
+      const btnF = document.getElementById('btnClearFront');
+      if (btnF) btnF.style.display = 'none';
 
       document.getElementById('imgBackPreview').style.display = 'none';
       document.getElementById('phBackPlaceholder').style.display = 'block';
       document.getElementById('badgeBackOk').style.display = 'none';
       document.getElementById('boxBackPhoto').classList.remove('has-image');
+      const btnB = document.getElementById('btnClearBack');
+      if (btnB) btnB.style.display = 'none';
 
       goToStep(1);
     }
@@ -1618,16 +1750,36 @@
       const file = inputEl && inputEl.files && inputEl.files[0];
       if (!file) return;
 
-      showToast('Đang quét mã QR từ ảnh...', 'info');
+      showToast('Đang xử lý ảnh từ thư viện...', 'info');
       try {
+        const base64 = await compressPhoto(file, 1600, 0.85);
+        // Tự động lưu luôn ảnh này làm ảnh Mặt Trước CCCD
+        formData.frontPhotoBase64 = base64;
+        document.getElementById('imgFrontPreview').src = base64;
+        document.getElementById('imgFrontPreview').style.display = 'block';
+        document.getElementById('phFrontPlaceholder').style.display = 'none';
+        document.getElementById('badgeFrontOk').style.display = 'block';
+        document.getElementById('boxFrontPhoto').classList.add('has-image');
+        const btnF = document.getElementById('btnClearFront');
+        if (btnF) btnF.style.display = 'flex';
+
+        // Quét QR từ file
         const qrRaw = await scanQrFromFile(file);
         if (qrRaw && checkValid(qrRaw)) {
           onQrDetected(qrRaw);
+          showToast('✓ Đã bóc tách thông tin & lưu ảnh Mặt Trước thành công!', 'success');
         } else {
-          showToast('Không tìm thấy mã QR trên ảnh. Vui lòng chụp rõ góc phải CCCD!', 'warning');
+          // Ảnh không có QR hoặc QR mờ
+          showToast('✓ Đã lưu ảnh Mặt Trước từ thư viện ảnh', 'info');
+          const manual = confirm('✓ Đã lưu ảnh Mặt Trước vào hồ sơ!\n\nTuy nhiên hệ thống chưa đọc được mã QR trên ảnh (do ảnh mờ hoặc không có mã QR).\n\n👉 Bạn có muốn nhập Số CCCD (12 số) để tiếp tục không?');
+          if (manual) {
+            promptManualCccd();
+          } else {
+            showToast('Bạn có thể nhập số CCCD hoặc quét bằng camera trực tiếp', 'info');
+          }
         }
       } catch (e) {
-        showToast('Lỗi đọc ảnh: ' + e.toString(), 'error');
+        showToast('Lỗi xử lý ảnh: ' + e.toString(), 'error');
       }
       inputEl.value = '';
     }
@@ -1705,8 +1857,33 @@
     }
 
     function promptManualCccd() {
-      const val = prompt('Nhập chuỗi QR CCCD hoặc 12 số CCCD:');
-      if (val && val.trim()) onQrDetected(val.trim());
+      const cccd = prompt('Nhập chuỗi QR CCCD hoặc 12 số CCCD (ghi trên thẻ):');
+      if (!cccd || !cccd.trim()) return;
+      const cleanVal = cccd.trim();
+
+      // Nếu dán chuỗi QR đầy đủ có dấu |
+      if (cleanVal.includes('|')) {
+        onQrDetected(cleanVal);
+        return;
+      }
+
+      const digits = cleanVal.replace(/\D/g, '');
+      if (digits.length !== 12 && digits.length !== 9) {
+        showToast('Số CCCD phải gồm 12 số (hoặc 9 số CMND cũ)', 'warning');
+        return;
+      }
+
+      const hoTen = prompt('Nhập Họ và Tên công nhân (Ví dụ: NGUYỄN VĂN A):') || '';
+      const parsed = {
+        cccd: digits,
+        hoTen: hoTen.trim().toUpperCase(),
+        dobFormatted: '',
+        gioiTinh: 'Nam',
+        diaChi: '',
+        ngayCap: ''
+      };
+      applyParsedData(parsed);
+      goToStep(2);
     }
 
     // Tự động khởi động camera khi mở trang
