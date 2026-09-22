@@ -877,8 +877,18 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Tổ Đội Trưởng / Hạng Mục Thi Công:</label>
+          <label class="form-label">Tổ Đội Trưởng / Nhà Thầu:</label>
           <input type="text" class="form-control" id="inputToDoi" placeholder="Ví dụ: Đội sắt Anh Nam, Đội bê tông...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Hạng Mục Thi Công:</label>
+          <select class="form-control" id="selectHangMuc">
+            <option value="Xây dựng" selected>Xây dựng</option>
+            <option value="ME cơ điện">ME cơ điện</option>
+            <option value="Nhôm kính">Nhôm kính</option>
+            <option value="Khác">Khác</option>
+          </select>
         </div>
 
         <div class="form-group">
@@ -888,7 +898,7 @@
 
         <div class="form-group">
           <label class="form-label">Mã Nhân Viên (Nếu có):</label>
-          <input type="text" class="form-control" id="inputMaNv" placeholder="Tự gợi ý từ CCCD">
+          <input type="text" class="form-control" id="inputMaNv" placeholder="Để trống nếu chưa có mã NV">
         </div>
 
         <div style="display: flex; gap: 8px; margin-top: 1rem;">
@@ -932,6 +942,14 @@
           <div class="data-row">
             <span class="data-label">Tổ đội trưởng:</span>
             <span class="data-value" id="revToDoi">-</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Hạng mục:</span>
+            <span class="data-value" id="revHangMuc">Xây dựng</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Mã nhân viên:</span>
+            <span class="data-value" id="revMaNv">(Để trống)</span>
           </div>
           <div class="data-row">
             <span class="data-label">Số điện thoại:</span>
@@ -1399,7 +1417,8 @@
       formData.gioiTinh = parsed.gioiTinh || 'Nam';
       formData.diaChi = parsed.diaChi || '';
       formData.ngayCap = parsed.ngayCap || '';
-      formData.maNv = parsed.cccd.slice(-7);
+      formData.maNv = '';
+      if (document.getElementById('inputMaNv')) document.getElementById('inputMaNv').value = '';
 
       // Hiển thị huy hiệu đã xác thực
       document.getElementById('badgeCccd').textContent = parsed.cccd;
@@ -1638,14 +1657,17 @@
     function renderReviewStep() {
       formData.viTriGiuong = document.getElementById('inputGiuong').value.trim();
       formData.toDoi = document.getElementById('inputToDoi').value.trim();
+      formData.hangMuc = (document.getElementById('selectHangMuc') ? document.getElementById('selectHangMuc').value : '') || 'Xây dựng';
       formData.sdt = document.getElementById('inputPhone').value.trim();
-      formData.maNv = document.getElementById('inputMaNv').value.trim() || formData.cccd.slice(-7);
+      formData.maNv = (document.getElementById('inputMaNv') ? document.getElementById('inputMaNv').value : '').trim();
 
       document.getElementById('revName').textContent = formData.hoTen || 'Chưa có tên';
       document.getElementById('revCccd').textContent = formData.cccd;
       document.getElementById('revDobGender').textContent = `${formData.dobFormatted || 'Chưa rõ'} • ${formData.gioiTinh}`;
       document.getElementById('revRoom').textContent = `Dãy ${formData.dayTt} • Phòng ${formData.phongTt}${formData.viTriGiuong ? ' (' + formData.viTriGiuong + ')' : ''}`;
       document.getElementById('revToDoi').textContent = formData.toDoi || 'Chưa phân';
+      document.getElementById('revHangMuc').textContent = formData.hangMuc;
+      document.getElementById('revMaNv').textContent = formData.maNv || '(Để trống)';
       document.getElementById('revPhone').textContent = formData.sdt || 'Chưa có';
 
       const photoCount = (formData.frontPhotoBase64 ? 1 : 0) + (formData.backPhotoBase64 ? 1 : 0);
@@ -1670,6 +1692,7 @@
           phongTt: formData.phongTt,
           viTriGiuong: formData.viTriGiuong,
           tieuDoiTruong: formData.toDoi,
+          hangMuc: formData.hangMuc || 'Xây dựng',
           sdt: formData.sdt,
           maNv: formData.maNv,
           frontPhotoBase64: formData.frontPhotoBase64,
@@ -1705,8 +1728,14 @@
       formData.backPhotoBase64 = '';
       formData.viTriGiuong = '';
       formData.toDoi = '';
+      formData.hangMuc = 'Xây dựng';
       formData.sdt = '';
       formData.maNv = '';
+      if (document.getElementById('inputMaNv')) document.getElementById('inputMaNv').value = '';
+      if (document.getElementById('selectHangMuc')) document.getElementById('selectHangMuc').value = 'Xây dựng';
+      if (document.getElementById('inputToDoi')) document.getElementById('inputToDoi').value = '';
+      if (document.getElementById('inputPhone')) document.getElementById('inputPhone').value = '';
+      if (document.getElementById('inputGiuong')) document.getElementById('inputGiuong').value = '';
 
       document.getElementById('parsedCard').style.display = 'none';
       document.getElementById('imgFrontPreview').style.display = 'none';
