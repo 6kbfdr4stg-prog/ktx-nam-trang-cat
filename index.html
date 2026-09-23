@@ -1779,7 +1779,7 @@
       const file = inputEl && inputEl.files && inputEl.files[0];
       if (!file) return;
 
-      showToast('Đang xử lý ảnh từ thư viện...', 'info');
+      showToast('⏳ Đang tối ưu và quét ảnh thẻ CCCD...', 'info');
       try {
         const base64 = await compressPhoto(file, 1600, 0.85);
         // Tự động lưu luôn ảnh này làm ảnh Mặt Trước CCCD
@@ -1792,20 +1792,49 @@
         const btnF = document.getElementById('btnClearFront');
         if (btnF) btnF.style.display = 'flex';
 
-        // Quét QR từ file
+        // 1. Quét QR từ file (Đa góc xoay 0-90-180-270 độ + Đa bộ lọc tương phản)
         const qrRaw = await scanQrFromFile(file);
         if (qrRaw && checkValid(qrRaw)) {
           onQrDetected(qrRaw);
           showToast('✓ Đã bóc tách thông tin & lưu ảnh Mặt Trước thành công!', 'success');
-        } else {
-          // Ảnh không có QR hoặc QR mờ
-          showToast('✓ Đã lưu ảnh Mặt Trước từ thư viện ảnh', 'info');
-          const manual = confirm('✓ Đã lưu ảnh Mặt Trước vào hồ sơ!\n\nTuy nhiên hệ thống chưa đọc được mã QR trên ảnh (do ảnh mờ hoặc không có mã QR).\n\n👉 Bạn có muốn nhập Số CCCD (12 số) để tiếp tục không?');
-          if (manual) {
-            promptManualCccd();
-          } else {
-            showToast('Bạn có thể nhập số CCCD hoặc quét bằng camera trực tiếp', 'info');
+          goToStep(2);
+          inputEl.value = '';
+          return;
+        }
+
+        // 2. TỰ ĐỘNG BÓC TÁCH BẰNG AI GEMINI 3.7 FLASH NẾU MÃ QR BỊ MỜ / KHÔNG CÓ QR
+        showToast('🤖 Đang nhận diện thông tin CCCD bằng AI Gemini 3.7 Flash...', 'info');
+        try {
+          const aiRes = await callApiPost('geminiOcr', { base64Data: base64, mimeType: 'image/jpeg' });
+          if (aiRes && aiRes.success && aiRes.data && (aiRes.data.cccd || aiRes.data.hoTen)) {
+            const d = aiRes.data;
+            const cleanCccd = String(d.cccd || '').replace(/\D/g, '');
+            const parsed = {
+              cccd: cleanCccd,
+              hoTen: (d.hoTen || '').trim().toUpperCase(),
+              dobFormatted: d.ngaySinh || '',
+              gioiTinh: d.gioiTinh || 'Nam',
+              diaChi: d.diaChi || d.noiThuongTru || d.queQuan || '',
+              ngayCap: d.ngayCap || '',
+              noiCap: d.noiCap || ''
+            };
+            applyParsedData(parsed);
+            showToast('✓ AI Gemini 3.7 Flash đã nhận diện: ' + parsed.hoTen + (cleanCccd ? (' (' + cleanCccd + ')') : ''), 'success');
+            goToStep(2);
+            inputEl.value = '';
+            return;
           }
+        } catch (aiErr) {
+          console.warn('Lỗi gọi AI Gemini OCR:', aiErr);
+        }
+
+        // 3. Nếu cả QR và AI đều không đọc được
+        showToast('✓ Đã lưu ảnh Mặt Trước từ thư viện', 'info');
+        const manual = confirm('✓ Đã lưu ảnh Mặt Trước vào hồ sơ!\n\nTuy nhiên hệ thống chưa đọc được thông tin trên ảnh (do ảnh mờ hoặc lóa sáng).\n\n👉 Bạn có muốn nhập Số CCCD (12 số) để tiếp tục không?');
+        if (manual) {
+          promptManualCccd();
+        } else {
+          showToast('Bạn có thể nhập số CCCD hoặc quét bằng camera trực tiếp', 'info');
         }
       } catch (e) {
         showToast('Lỗi xử lý ảnh: ' + e.toString(), 'error');
@@ -1816,7 +1845,7 @@
     async function scanQrFromFile(file) {
       if (!file) return null;
 
-      // 1. TẦNG 1: Html5Qrcode.scanFile (lõi ZXing tối ưu cho mã QR CCCD)
+      // 1. TẦNG 0: Html5Qrcode.scanFile (lõi ZXing tối ưu cho mã QR CCCD)
       if (typeof Html5Qrcode !== 'undefined') {
         try {
           let dummyDiv = document.getElementById('dummyFileReader');
@@ -1833,51 +1862,168 @@
         } catch(e) {}
       }
 
-      // 2. TẦNG 2: BarcodeDetector và multi-crop Canvas fallback
+      // 2. TẦNG 1-5: BarcodeDetector và Multi-angle Rotations + Macro Crops + Filters
       return new Promise((resolve) => {
         const img = new Image();
         const url = URL.createObjectURL(file);
         img.onload = async () => {
           URL.revokeObjectURL(url);
-          const w = img.naturalWidth || img.width;
-          const h = img.naturalHeight || img.height;
+          const origW = img.naturalWidth || img.width;
+          const origH = img.naturalHeight || img.height;
+          if (!origW || !origH) { resolve(null); return; }
 
-          // Thử BarcodeDetector
-          if ('BarcodeDetector' in window) {
-            try {
-              const det = new BarcodeDetector({ formats: ['qr_code'] });
-              const bcs = await det.detect(img);
-              if (bcs && bcs[0] && bcs[0].rawValue && checkValid(bcs[0].rawValue)) {
-                resolve(bcs[0].rawValue);
-                return;
+          function sharpen(data, w, h) {
+            var src = new Uint8ClampedArray(data);
+            for (var y = 1; y < h - 1; y++) {
+              for (var x = 1; x < w - 1; x++) {
+                var i = (y * w + x) * 4;
+                for (var c = 0; c < 3; c++) {
+                  var v = 5 * src[i+c] - src[((y-1)*w+x)*4+c] - src[((y+1)*w+x)*4+c]
+                          - src[(y*w+x-1)*4+c] - src[(y*w+x+1)*4+c];
+                  data[i+c] = v < 0 ? 0 : v > 255 ? 255 : v;
+                }
               }
-            } catch (e) {}
+            }
           }
 
-          // Thử jsQR với multi-scale crop
-          if (typeof jsQR === 'function') {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            // Crop 1: Toàn ảnh
-            canvas.width = Math.min(w, 1600);
-            canvas.height = Math.round(h * (canvas.width / w));
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            let d = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            let code = jsQR(d.data, canvas.width, canvas.height, { inversionAttempts: 'attemptBoth' });
-            if (code && checkValid(code.data)) { resolve(code.data); return; }
-
-            // Crop 2: Góc trên bên phải (vị trí chuẩn của QR trên thẻ CCCD)
-            const rw = Math.round(w * 0.55);
-            const rh = Math.round(h * 0.55);
-            const rx = Math.max(0, w - rw);
-            const ry = 0;
-            canvas.width = rw; canvas.height = rh;
-            ctx.drawImage(img, rx, ry, rw, rh, 0, 0, rw, rh);
-            d = ctx.getImageData(0, 0, rw, rh);
-            code = jsQR(d.data, rw, rh, { inversionAttempts: 'attemptBoth' });
-            if (code && checkValid(code.data)) { resolve(code.data); return; }
+          function stretchContrast(data, len) {
+            var mn = 255, mx = 0;
+            for (var i = 0; i < len; i += 16) {
+              var g = (data[i] * 77 + data[i+1] * 150 + data[i+2] * 29) >> 8;
+              if (g < mn) mn = g;
+              if (g > mx) mx = g;
+            }
+            var range = mx - mn;
+            if (range < 20) return;
+            var scale = 255.0 / range;
+            for (var i = 0; i < len; i += 4) {
+              data[i]   = Math.min(255, Math.max(0, ((data[i] - mn) * scale) | 0));
+              data[i+1] = Math.min(255, Math.max(0, ((data[i+1] - mn) * scale) | 0));
+              data[i+2] = Math.min(255, Math.max(0, ((data[i+2] - mn) * scale) | 0));
+            }
           }
+
+          function binarize(data, len, threshold) {
+            for (var i = 0; i < len; i += 4) {
+              var g = (data[i] * 77 + data[i+1] * 150 + data[i+2] * 29) >> 8;
+              var v = g > threshold ? 255 : 0;
+              data[i] = v; data[i+1] = v; data[i+2] = v;
+            }
+          }
+
+          async function scanCv(cv) {
+            if (!cv) return null;
+            // Native BarcodeDetector
+            if ('BarcodeDetector' in window) {
+              try {
+                const det = new BarcodeDetector({ formats: ['qr_code'] });
+                const bcs = await det.detect(cv);
+                if (bcs && bcs[0] && bcs[0].rawValue && checkValid(bcs[0].rawValue)) {
+                  return bcs[0].rawValue;
+                }
+              } catch (e) {}
+            }
+
+            // jsQR with multi-pass filters
+            if (typeof jsQR === 'function') {
+              const ctx = cv.getContext('2d', { willReadFrequently: true });
+              const w = cv.width, h = cv.height;
+
+              // Pass 1: Raw
+              let d = ctx.getImageData(0, 0, w, h);
+              let code = jsQR(d.data, w, h, { inversionAttempts: 'attemptBoth' });
+              if (code && checkValid(code.data)) return code.data;
+
+              // Pass 2: Contrast stretched
+              d = ctx.getImageData(0, 0, w, h);
+              stretchContrast(d.data, d.data.length);
+              code = jsQR(d.data, w, h, { inversionAttempts: 'attemptBoth' });
+              if (code && checkValid(code.data)) return code.data;
+
+              // Pass 3: Sharpened
+              d = ctx.getImageData(0, 0, w, h);
+              sharpen(d.data, w, h);
+              code = jsQR(d.data, w, h, { inversionAttempts: 'attemptBoth' });
+              if (code && checkValid(code.data)) return code.data;
+
+              // Pass 4: Multi-threshold binarization
+              const thresholds = [85, 115, 145, 175];
+              for (let t of thresholds) {
+                d = ctx.getImageData(0, 0, w, h);
+                binarize(d.data, d.data.length, t);
+                code = jsQR(d.data, w, h, { inversionAttempts: 'attemptBoth' });
+                if (code && checkValid(code.data)) return code.data;
+              }
+            }
+            return null;
+          }
+
+          function createRotatedCv(srcCv, deg) {
+            const c = document.createElement('canvas');
+            const ctx = c.getContext('2d', { willReadFrequently: true });
+            if (deg === 90 || deg === 270) {
+              c.width = srcCv.height;
+              c.height = srcCv.width;
+            } else {
+              c.width = srcCv.width;
+              c.height = srcCv.height;
+            }
+            ctx.translate(c.width / 2, c.height / 2);
+            ctx.rotate((deg * Math.PI) / 180);
+            ctx.drawImage(srcCv, -srcCv.width / 2, -srcCv.height / 2);
+            return c;
+          }
+
+          async function scanCvAllAngles(cv) {
+            let res = await scanCv(cv);
+            if (res) return res;
+            for (let deg of [90, 180, 270]) {
+              const rotCv = createRotatedCv(cv, deg);
+              res = await scanCv(rotCv);
+              if (res) return res;
+            }
+            return null;
+          }
+
+          // Crop 1: Góc trên bên phải (vị trí chuẩn thẻ CCCD)
+          const isPortrait = origH > origW;
+          const roiX = Math.round(isPortrait ? origW * 0.35 : origW * 0.40);
+          const roiY = 0;
+          const roiW = origW - roiX;
+          const roiH = Math.round(isPortrait ? origH * 0.55 : origH * 0.65);
+          const cropCanvas1 = document.createElement('canvas');
+          cropCanvas1.width = roiW;
+          cropCanvas1.height = roiH;
+          const ctx1 = cropCanvas1.getContext('2d', { willReadFrequently: true });
+          ctx1.drawImage(img, roiX, roiY, roiW, roiH, 0, 0, roiW, roiH);
+
+          let found = await scanCvAllAngles(cropCanvas1);
+          if (found) { resolve(found); return; }
+
+          // Crop 2: Vùng trung tâm
+          const centerSize = Math.min(origW, origH, Math.round(Math.min(origW, origH) * 0.75));
+          const cX = Math.max(0, Math.round((origW - centerSize) / 2));
+          const cY = Math.max(0, Math.round((origH - centerSize) / 2));
+          const cropCanvas2 = document.createElement('canvas');
+          cropCanvas2.width = centerSize;
+          cropCanvas2.height = centerSize;
+          const ctx2 = cropCanvas2.getContext('2d', { willReadFrequently: true });
+          ctx2.drawImage(img, cX, cY, centerSize, centerSize, 0, 0, centerSize, centerSize);
+
+          found = await scanCvAllAngles(cropCanvas2);
+          if (found) { resolve(found); return; }
+
+          // Crop 3: Toàn ảnh (độ phân giải tối ưu max 1600px)
+          const fullScale = Math.min(1, 1600 / Math.max(origW, origH));
+          const fullCanvas = document.createElement('canvas');
+          fullCanvas.width = Math.round(origW * fullScale);
+          fullCanvas.height = Math.round(origH * fullScale);
+          const fullCtx = fullCanvas.getContext('2d', { willReadFrequently: true });
+          fullCtx.drawImage(img, 0, 0, fullCanvas.width, fullCanvas.height);
+
+          found = await scanCvAllAngles(fullCanvas);
+          if (found) { resolve(found); return; }
+
           resolve(null);
         };
         img.onerror = () => resolve(null);
